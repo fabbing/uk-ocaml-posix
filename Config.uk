@@ -1,0 +1,7 @@
+menuconfig LIBOCAMLPOSIX
+	bool "OCaml POSIX runtime"
+	default n
+
+config LIBOCAMLPOSIX_MAIN_FUNCTION
+	bool "Provide main function"
+	default n
