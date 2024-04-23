@@ -1,0 +1,26 @@
+From d61466611ecf60ab3e1c3ebf78b40fa7b1c43624 Mon Sep 17 00:00:00 2001
+From: fabbing <fabrice@tarides.com>
+Date: Tue, 23 Apr 2024 15:05:38 +0200
+Subject: [PATCH 1/2] configure: force pthread detection
+
+musl provides pthread support, but this can't be validated by configure because
+we don't have a library to link against.
+---
+ configure | Bin 644933 -> 644951 bytes
+ 1 file changed, 0 insertions(+), 0 deletions(-)
+
+diff --git a/configure b/configure
+index 3b3ffdaa12..4c19014db6 100755
+--- a/configure
++++ b/configure
+@@ -19564,6 +19564,7 @@ test -n "$PTHREAD_CXX" || PTHREAD_CXX="$CXX"
+ 
+ 
+ 
++ax_pthread_ok=yes
+ # Finally, execute ACTION-IF-FOUND/ACTION-IF-NOT-FOUND:
+ if test "x$ax_pthread_ok" = "xyes"; then
+         common_cflags="$common_cflags $PTHREAD_CFLAGS"
+-- 
+2.44.0
+

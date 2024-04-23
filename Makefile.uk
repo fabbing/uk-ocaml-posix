@@ -42,10 +42,37 @@ $(eval $(call addlib_s,libocamlposix,$(CONFIG_LIBOCAMLPOSIX)))
 ################################################################################
 # Sources
 ################################################################################]
-LIBOCAMLPOSIX_URL = https://github.com/fabbing/uk-ocaml-posix.git
-LIBOCAMLPOSIX_SUBDIR = uk-ocaml-posix-$(LIBOCAMLPOSIX_VERSION)
+LIBOCAMLPOSIX_VERSION = 5.2.0-beta1
+LIBOCAMLPOSIX_ZIPNAME = $(LIBOCAMLPOSIX_VERSION)
+LIBOCAMLPOSIX_URL = https://github.com/ocaml/ocaml/archive/refs/tags/$(LIBOCAMLPOSIX_ZIPNAME).zip
+
+LIBOCAMLPOSIX_PATCHDIR = $(LIBOCAMLPOSIX_BASE)/patches
+LIBOCAMLPOSIX_SUBDIR = ocaml-$(LIBOCAMLPOSIX_ZIPNAME)
+
+LIBOCAMLPOSIX_OCAML = $(LIBOCAMLPOSIX_ORIGIN)/$(LIBOCAMLPOSIX_SUBDIR)
 
 $(eval $(call fetch,libocamlposix,$(LIBOCAMLPOSIX_URL)))
+$(eval $(call patch,libocamlposix,$(LIBOCAMLPOSIX_PATCHDIR),$(LIBOCAMLPOSIX_SUBDIR)))
+
+# TODO use call verbose_cmd
+$(LIBOCAMLPOSIX_BUILD)/.configured: $(LIBOCAMLPOSIX_BUILD)/.patched
+	cd $(LIBOCAMLPOSIX_OCAML) && \
+		./configure \
+			CC=$(CC) \
+			ASFLAGS='$(ASFLAGS) $(ASFLAGS-y)' \
+			CPPFLAGS='$(M4FLAGS) $(M4FLAGS-y)' \
+			CFLAGS='$(COMPFLAGS) $(COMPFLAGS-y) $(CINCLUDES) $(CINCLUDES-y)' \
+			--host=x86_64-none \
+			--disable-ocamldoc \
+			--disable-ocamltest \
+			--disable-stdlib-manpages \
+			--without-zstd \
+			&& \
+			$(TOUCH) $@
+
+$(LIBOCAMLPOSIX_BUILD)/.prepared: $(LIBOCAMLPOSIX_BUILD)/.configured
+
+UK_PREPARE += $(LIBOCAMLPOSIX_BUILD)/.prepared
 
 ################################################################################
 # Helpers
@@ -56,14 +83,20 @@ LIBOCAMLPOSIX_SRC = $(LIBOCAMLPOSIX_ORIGIN)/$(LIBOCAMLPOSIX_SUBDIR)
 # Library includes
 ################################################################################
 CINCLUDES-y += -I$(LIBOCAMLPOSIX_BASE)/include
+CINCLUDES-y += -I$(LIBOCAMLPOSIX_OCAML)/runtime
 
 ################################################################################
 # Flags
 ################################################################################
-LIBOCAMLPOSIX_FLAGS =
+LIBOCAMLPOSIX_FLAGS = -fno-strict-aliasing -fwrapv -g -Wall -Wint-conversion -Wstrict-prototypes -Wold-style-definition -Wold-style-declaration -Werror -fno-common -fexcess-precision=standard -Wvla -fno-tree-vrp -ffunction-sections
+# Removed: -Wundef
+
+LIBOCAMLPOSIX_FLAGS += -D_FILE_OFFSET_BITS=64
+LIBOCAMLPOSIX_FLAGS += -DNATIVE_CODE -DTARGET_amd64 -DMODEL_default -DSYS_linux
+
 
 # Suppress some warnings to make the build process look neater
-LIBOCAMLPOSIX_FLAGS_SUPPRESS =
+LIBOCAMLPOSIX_FLAGS_SUPPRESS = -Wno-sign-compare -Wno-strict-prototypes -Wno-implicit-fallthrough
 
 LIBOCAMLPOSIX_CFLAGS-y += $(LIBOCAMLPOSIX_FLAGS)
 LIBOCAMLPOSIX_CFLAGS-y += $(LIBOCAMLPOSIX_FLAGS_SUPPRESS)
@@ -82,6 +115,65 @@ LIBOCAMLPOSIXSRCS-$(CONFIG_LIBOCAMLPOSIX_MAIN_FUNCTION) += $(LIBOCAMLPOSIX_BASE)
 ################################################################################
 # Library sources
 ################################################################################
-# LIBOCAMLPOSIX_SRCS-y += # Include source files here
+LIBOCAMLPOSIX_C_SRCS = addrmap \
+  alloc \
+  array \
+  backtrace \
+  bigarray \
+  blake2 \
+  callback \
+  codefrag \
+  compare \
+  custom \
+  debugger \
+  domain \
+  extern \
+  fiber \
+  finalise \
+  floats \
+  gc_ctrl \
+  gc_stats \
+  globroots \
+  hash \
+  intern \
+  ints \
+  io \
+  lexing \
+  lf_skiplist \
+  main \
+  major_gc \
+  md5 \
+  memory \
+  memprof \
+  meta \
+  minor_gc \
+  misc \
+  obj \
+  parsing \
+  platform \
+  printexc \
+  prng \
+  roots \
+  runtime_events \
+  shared_heap \
+  signals \
+  skiplist \
+  startup_aux \
+  str \
+  sync \
+  sys \
+  unix \
+  weak \
+  backtrace_nat \
+  clambda_checks \
+  fail_nat \
+  frame_descriptors \
+  startup_nat \
+  signals_nat
 
+LIBOCAMLPOSIX_SRCS-y += $(addprefix $(LIBOCAMLPOSIX_OCAML)/runtime/,\
+	$(addsuffix .c,$(LIBOCAMLPOSIX_C_SRCS)))
 
+LIBOCAMLPOSIX_SRCS-y += $(LIBOCAMLPOSIX_OCAML)/runtime/amd64.S
+
+LIBOCAMLPOSIX_SRCS-y += $(LIBOCAMLPOSIX_BASE)/src/dynlink_nat.c
