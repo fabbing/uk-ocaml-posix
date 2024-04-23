@@ -3,7 +3,9 @@
 # OCaml POSIX runtime
 
 #
-# Authors: Fabrice Buoro fabrice@tarides.com 
+# Authors: Lucas Pluvinage <lucas@tarides.com>
+#          Christiano Haesbaert <haesbaert@haesbaert.org>
+#          Fabrice Buoro <fabbing@free.fr>
 #
 # Copyright (c) 2024, Fabrice Buoro. All rights reserved.
 #
