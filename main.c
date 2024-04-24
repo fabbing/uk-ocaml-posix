@@ -1,7 +1,7 @@
 
 // SPDX-License-Identifier: BSD-3-Clause
 //
-// uk-ocaml-posix Unikraft library
+// OCaml POSIX Unikraft library
 //
 // Authors: Fabrice Buoro fabrice@tarides.com 
 //
@@ -35,5 +35,5 @@
 int main(int argc, char *argv[])
 {
 	// TODO: Replace with main
-	return uk-ocaml-posix_main(argc, argv);
+	return ocaml_posix_main(argc, argv);
 }

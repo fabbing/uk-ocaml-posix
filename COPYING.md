@@ -1,8 +1,8 @@
 # License
 
-Unikraft uk-ocaml-posix wrapper library
+Unikraft OCaml POSIX wrapper library
 
-This repository contains wrapper code to build uk-ocaml-posix with Unikraft.
+This repository contains wrapper code to build OCaml POSIX with Unikraft.
 Each C code file in this repository should declare who is the
 copyright owner and under which terms and conditions the code is
 licensed. If such a licence note is missing, the following copyright

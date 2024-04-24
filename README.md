@@ -1,6 +1,6 @@
-# uk-ocaml-posix for Unikraft
+# OCaml POSIX for Unikraft
 
-This is the port of uk-ocaml-posix for Unikraft as external library.
+This is the port of OCaml POSIX for Unikraft as external library.
 
 Please refer to the [`README.md`](https://github.com/unikraft/unikraft/tree/staging/README.md)
 as well as the documentation in the [`doc/`](https://github.com/unikraft/unikraft/tree/staging/doc/)
