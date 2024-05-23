@@ -42,7 +42,7 @@ $(eval $(call addlib_s,libocamlposix,$(CONFIG_LIBOCAMLPOSIX)))
 ################################################################################
 # Sources
 ################################################################################]
-LIBOCAMLPOSIX_VERSION = 5.2.0-beta1
+LIBOCAMLPOSIX_VERSION = 5.2.0
 LIBOCAMLPOSIX_ZIPNAME = $(LIBOCAMLPOSIX_VERSION)
 LIBOCAMLPOSIX_URL = https://github.com/ocaml/ocaml/archive/refs/tags/$(LIBOCAMLPOSIX_ZIPNAME).zip
 
