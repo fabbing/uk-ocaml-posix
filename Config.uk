@@ -4,9 +4,24 @@ menuconfig LIBOCAMLPOSIX
 
 config LIBOCAMLPOSIX_DEPENDENCIES
   bool
-  select LIBMUSL
   default y
-
+  select LIBMUSL
+  select LIBLWIP
+  select LIBPOSIX_ENVIRON
+  select LIBPOSIX_EVENTFD
+  select LIBPOSIX_FDIO
+  select LIBPOSIX_FUTEX
+  select LIBPOSIX_PIPE
+  select LIBPOSIX_POLL
+  select LIBPOSIX_PROCESS
+  select LIBPOSIX_SOCKET
+  select LIBPOSIX_SYSINFO
+  select LIBPOSIX_TIME
+  select LIBPOSIX_TIMERFD
+  select LIBPOSIX_TTY
+  select LIBPOSIX_TTY_SERIAL
+  select LIBPOSIX_UNIXSOCKET
+  select LIBPOSIX_USER
 
 config LIBOCAMLPOSIX_MAIN_FUNCTION
 	bool "Provide main function"

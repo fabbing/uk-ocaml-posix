@@ -41,42 +41,61 @@ $(eval $(call addlib_s,libocamlposix,$(CONFIG_LIBOCAMLPOSIX)))
 
 ################################################################################
 # Sources
-################################################################################]
-LIBOCAMLPOSIX_VERSION = 5.2.0
-LIBOCAMLPOSIX_ZIPNAME = $(LIBOCAMLPOSIX_VERSION)
-LIBOCAMLPOSIX_URL = https://github.com/ocaml/ocaml/archive/refs/tags/$(LIBOCAMLPOSIX_ZIPNAME).zip
+################################################################################
+LIBOCAMLPOSIX_URL = https://github.com/fabbing/ocaml/archive/refs/heads/solo5.zip
 
 LIBOCAMLPOSIX_PATCHDIR = $(LIBOCAMLPOSIX_BASE)/patches
-LIBOCAMLPOSIX_SUBDIR = ocaml-$(LIBOCAMLPOSIX_ZIPNAME)
+LIBOCAMLPOSIX_SUBDIR = ocaml-solo5
 
 LIBOCAMLPOSIX_OCAML = $(LIBOCAMLPOSIX_ORIGIN)/$(LIBOCAMLPOSIX_SUBDIR)
 
 $(eval $(call fetch,libocamlposix,$(LIBOCAMLPOSIX_URL)))
 $(eval $(call patch,libocamlposix,$(LIBOCAMLPOSIX_PATCHDIR),$(LIBOCAMLPOSIX_SUBDIR)))
 
-# TODO use call verbose_cmd
+
+LIBOCAMLPOSIX_OPAM_SWITCH = $(LIBOCAMLPOSIX_OCAML)
+
+# TODO
+# - Use call verbose_cmd
+# - Use disable-shared?
 $(LIBOCAMLPOSIX_BUILD)/.configured: $(LIBOCAMLPOSIX_BUILD)/.patched
 	cd $(LIBOCAMLPOSIX_OCAML) && \
 		./configure \
 			CC=$(CC) \
+			LD=$(LD) \
+			DIRECT_LD=$(LD) \
 			ASFLAGS='$(ASFLAGS) $(ASFLAGS-y)' \
 			CPPFLAGS='$(M4FLAGS) $(M4FLAGS-y)' \
 			CFLAGS='$(COMPFLAGS) $(COMPFLAGS-y) $(CINCLUDES) $(CINCLUDES-y)' \
-			--host=x86_64-none \
+			LDFLAGS='$(LDFLAGS) $(LDFLAGS-y) -Wl,--unresolved-symbols=ignore-all' \
+			--prefix="$$(opam var --switch=$(LIBOCAMLPOSIX_OPAM_SWITCH) prefix)" \
+			--target=x86_64-none \
 			--disable-ocamldoc \
 			--disable-ocamltest \
 			--disable-stdlib-manpages \
 			--without-zstd \
-			&& \
-			$(TOUCH) $@
+		&& \
+		$(TOUCH) $@
 
-$(LIBOCAMLPOSIX_BUILD)/.prepared: $(LIBOCAMLPOSIX_BUILD)/.configured
+$(LIBOCAMLPOSIX_BUILD)/.opam-switch: $(LIBOCAMLPOSIX_BUILD)/.configured
+	cd $(LIBOCAMLPOSIX_OCAML) && \
+		opam switch create $(LIBOCAMLPOSIX_OPAM_SWITCH) --empty \
+		&& \
+		$(TOUCH) $@
+
+$(LIBOCAMLPOSIX_BUILD)/.prepared: $(LIBOCAMLPOSIX_BUILD)/.opam-switch
+	cd $(LIBOCAMLPOSIX_OCAML) && \
+		$(MAKE) MAKEOVERRIDES= cross.opt \
+		&& \
+		opam install -y --switch=$(LIBOCAMLPOSIX_OPAM_SWITCH) . --assume-built \
+		&& \
+		$(TOUCH) $@
 
 UK_PREPARE += $(LIBOCAMLPOSIX_BUILD)/.prepared
 
 ################################################################################
 # Helpers
-################################################################################
+###################################G#############################################
 LIBOCAMLPOSIX_SRC = $(LIBOCAMLPOSIX_ORIGIN)/$(LIBOCAMLPOSIX_SUBDIR)
 
 ################################################################################
@@ -88,14 +107,20 @@ CINCLUDES-y += -I$(LIBOCAMLPOSIX_OCAML)/runtime
 ################################################################################
 # Flags
 ################################################################################
-LIBOCAMLPOSIX_FLAGS = -fno-strict-aliasing -fwrapv -g -Wall -Wint-conversion -Wstrict-prototypes -Wold-style-definition -Wold-style-declaration -Werror -fno-common -fexcess-precision=standard -Wvla -fno-tree-vrp -ffunction-sections
-# Removed: -Wundef
+LIBOCAMLPOSIX_FLAGS = -O2 -fno-strict-aliasing -fwrapv -g -Wall -Wint-conversion -Wstrict-prototypes -Wold-style-definition -Wundef -Wold-style-declaration -fno-common -fexcess-precision=standard -Wvla -fno-tree-vrp -ffunction-sections
+
+LIBOCAMLPOSIX_FLAGS = -DNATIVE_CODE -DMODEL_default -DSYS_linux
+
+ifeq ($(ARCH),x86_64)
+LIBOCAMLPOSIX_FLAGS += -DTARGET_amd64
+else ifeq ($(ARCH),arm64)
+LIBOCAMLPOSIX_FLAGS += -DTARGET_arm64
+else
+$(error Unsupported architecture)
+endif
 
 LIBOCAMLPOSIX_FLAGS += -D_FILE_OFFSET_BITS=64
-LIBOCAMLPOSIX_FLAGS += -DNATIVE_CODE -DTARGET_amd64 -DMODEL_default -DSYS_linux
 
-
-# Suppress some warnings to make the build process look neater
 LIBOCAMLPOSIX_FLAGS_SUPPRESS = -Wno-sign-compare -Wno-strict-prototypes -Wno-implicit-fallthrough
 
 LIBOCAMLPOSIX_CFLAGS-y += $(LIBOCAMLPOSIX_FLAGS)
@@ -109,12 +134,14 @@ LIBOCAMLPOSIX_CFLAGS-y += $(LIBOCAMLPOSIX_FLAGS_SUPPRESS)
 # LIBOCAMLPOSIX_CXXINCLUDES-y += $(LIBOCAMLPOSIX_COMMON_INCLUDES-y)
 
 
-LIBOCAMLPOSIXSRCS-$(CONFIG_LIBOCAMLPOSIX_MAIN_FUNCTION) += $(LIBOCAMLPOSIX_BASE)/main.c|unikraft
+LIBOCAMLPOSIXSRCS-$(CONFIG_LIBOCAMLPOSIX_MAIN_FUNCTION) += \
+	$(LIBOCAMLPOSIX_BASE)/main.c|unikraft
 
 
 ################################################################################
 # Library sources
 ################################################################################
+
 LIBOCAMLPOSIX_C_SRCS = addrmap \
   alloc \
   array \
@@ -171,9 +198,15 @@ LIBOCAMLPOSIX_C_SRCS = addrmap \
   startup_nat \
   signals_nat
 
-LIBOCAMLPOSIX_SRCS-y += $(addprefix $(LIBOCAMLPOSIX_OCAML)/runtime/,\
-	$(addsuffix .c,$(LIBOCAMLPOSIX_C_SRCS)))
+LIBOCAMLPOSIX_SRCS-y += $(addprefix $(LIBOCAMLPOSIX_OCAML)/runtime/,$(addsuffix .c,$(LIBOCAMLPOSIX_C_SRCS)))
 
+ifeq ($(ARCH),x86_64)
 LIBOCAMLPOSIX_SRCS-y += $(LIBOCAMLPOSIX_OCAML)/runtime/amd64.S
+else ifeq ($(ARCH),arm64)
+LIBOCAMLPOSIX_SRCS-y += $(LIBOCAMLPOSIX_OCAML)/runtime/arm64.S
+else
+$(error Unsupported architecture)
+endif
 
+# Stubs
 LIBOCAMLPOSIX_SRCS-y += $(LIBOCAMLPOSIX_BASE)/src/dynlink_nat.c
