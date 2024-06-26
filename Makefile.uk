@@ -42,12 +42,10 @@ $(eval $(call addlib_s,libocamlposix,$(CONFIG_LIBOCAMLPOSIX)))
 ################################################################################
 # Sources
 ################################################################################]
-LIBOCAMLPOSIX_VERSION = 5.2.0
-LIBOCAMLPOSIX_ZIPNAME = $(LIBOCAMLPOSIX_VERSION)
-LIBOCAMLPOSIX_URL = https://github.com/ocaml/ocaml/archive/refs/tags/$(LIBOCAMLPOSIX_ZIPNAME).zip
+LIBOCAMLPOSIX_URL = https://github.com/shym/ocaml/archive/refs/heads/solo5.zip
 
 LIBOCAMLPOSIX_PATCHDIR = $(LIBOCAMLPOSIX_BASE)/patches
-LIBOCAMLPOSIX_SUBDIR = ocaml-$(LIBOCAMLPOSIX_ZIPNAME)
+LIBOCAMLPOSIX_SUBDIR = ocaml-solo5
 
 LIBOCAMLPOSIX_OCAML = $(LIBOCAMLPOSIX_ORIGIN)/$(LIBOCAMLPOSIX_SUBDIR)
 
@@ -59,10 +57,12 @@ $(LIBOCAMLPOSIX_BUILD)/.configured: $(LIBOCAMLPOSIX_BUILD)/.patched
 	cd $(LIBOCAMLPOSIX_OCAML) && \
 		./configure \
 			CC=$(CC) \
+			LD=$(LD) \
+			DIRECT_LD=$(LD) \
 			ASFLAGS='$(ASFLAGS) $(ASFLAGS-y)' \
 			CPPFLAGS='$(M4FLAGS) $(M4FLAGS-y)' \
 			CFLAGS='$(COMPFLAGS) $(COMPFLAGS-y) $(CINCLUDES) $(CINCLUDES-y)' \
-			--host=x86_64-none \
+			--target=x86_64-none \
 			--disable-ocamldoc \
 			--disable-ocamltest \
 			--disable-stdlib-manpages \
@@ -71,6 +71,10 @@ $(LIBOCAMLPOSIX_BUILD)/.configured: $(LIBOCAMLPOSIX_BUILD)/.patched
 			$(TOUCH) $@
 
 $(LIBOCAMLPOSIX_BUILD)/.prepared: $(LIBOCAMLPOSIX_BUILD)/.configured
+	cd $(LIBOCAMLPOSIX_OCAML) && \
+		make V=1 cross.opt
+		&& \
+		$(TOUCH) $@
 
 UK_PREPARE += $(LIBOCAMLPOSIX_BUILD)/.prepared
 

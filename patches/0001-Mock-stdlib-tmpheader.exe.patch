@@ -1,0 +1,27 @@
+From 1dbf70a0db89508224084f03a86838eb117e4315 Mon Sep 17 00:00:00 2001
+From: fabbing <fabrice@tarides.com>
+Date: Wed, 26 Jun 2024 18:15:39 +0200
+Subject: [PATCH 1/2] Mock `stdlib/tmpheader.exe`
+
+We can't link this ELF at this point of Unikraft build.
+---
+ stdlib/Makefile | 3 +--
+ 1 file changed, 1 insertion(+), 2 deletions(-)
+
+diff --git a/stdlib/Makefile b/stdlib/Makefile
+index a7f2e60a7a..fec9dea316 100644
+--- a/stdlib/Makefile
++++ b/stdlib/Makefile
+@@ -95,8 +95,7 @@ endif
+ 
+ .INTERMEDIATE: tmpheader.exe
+ tmpheader.exe: $(HEADERPROGRAM).$(O)
+-	$(V_MKEXE)$(call MKEXE_VIA_CC,$@,$^)
+-	$(STRIP) $@
++	echo "tmpheader.exe not implemented" >$@
+ 
+ stdlib.cma: $(OBJS)
+ 	$(V_LINKC)$(CAMLC) -a -o $@ $^
+-- 
+2.45.2
+

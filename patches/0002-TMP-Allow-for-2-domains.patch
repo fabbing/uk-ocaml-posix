@@ -1,29 +1,25 @@
-From 29c3b4a7879486ed160aa6e812a97ceac55d385a Mon Sep 17 00:00:00 2001
+From 8d919dccaa34d783c7df6cb922ca55451844ec32 Mon Sep 17 00:00:00 2001
 From: fabbing <fabrice@tarides.com>
-Date: Tue, 23 Apr 2024 15:09:14 +0200
-Subject: [PATCH 2/2] [TMP] runtime: Limit to max 2 domains
+Date: Wed, 26 Jun 2024 18:17:14 +0200
+Subject: [PATCH 2/2] [TMP] Allow for 2 domains
 
 ---
- runtime/caml/domain.h | 6 +-----
- 1 file changed, 1 insertion(+), 5 deletions(-)
+ runtime/caml/domain.h | 2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
 
 diff --git a/runtime/caml/domain.h b/runtime/caml/domain.h
-index 4b9be80b41..61c7c4b0dd 100644
+index 986486478c..61c7c4b0dd 100644
 --- a/runtime/caml/domain.h
 +++ b/runtime/caml/domain.h
-@@ -31,11 +31,7 @@ extern "C" {
+@@ -31,7 +31,7 @@ extern "C" {
  
  /* The runtime currently has a hard limit on the number of domains.
     This hard limit may go away in the future. */
--#ifdef ARCH_SIXTYFOUR
--#define Max_domains 128
--#else
--#define Max_domains 16
--#endif
+-#define Max_domains 1
 +#define Max_domains 2
  
  /* is the minor heap full or an external interrupt has been triggered */
  Caml_inline int caml_check_gc_interrupt(caml_domain_state * dom_st)
 -- 
-2.44.0
+2.45.2
 
