@@ -79,7 +79,7 @@ $(LIBOCAMLPOSIX_BUILD)/.configured: $(LIBOCAMLPOSIX_BUILD)/.patched
 
 $(LIBOCAMLPOSIX_BUILD)/.opam-switch: $(LIBOCAMLPOSIX_BUILD)/.configured
 	cd $(LIBOCAMLPOSIX_OCAML) && \
-		opam switch create $(LIBOCAMLPOSIX_OPAM_SWITCH) --empty \
+		opam switch create $(LIBOCAMLPOSIX_OPAM_SWITCH) --empty --no-switch \
 		&& \
 		$(TOUCH) $@
 
